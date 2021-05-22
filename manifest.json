@@ -1,0 +1,21 @@
+{
+    "name": "Contact Image Sync",
+    "description": "Sync images from Whatsapp",
+    "version": "1.0",
+    "manifest_version": 3,
+    "permissions": ["scripting", "identity"],
+    "host_permissions": ["*://web.whatsapp.com/"],
+    "action": {
+        "default_popup": "index.html"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAktoLfCV18wxIsEgxkP2LtpMeOrBe0lpxs25/7D/D5sb/83tGKso2CDhGZI8FIITwy0eoBgcjbAy9ezjbEcbQmP/mEReOUdxN9iVYCyxtqQ+mW1AJptkWcfVjH2CeYItWbRGbwzId20gYKEz9eAg39nXOAVhjIB2Zm9nqvsSnAvk8iTAj1LXwxf3gsBOkfJlbm2/yLW3RhXoUzBUSbD/7gkhMJ4e7u0FqwSTnsFMEK4VMu1k3kaycbR1kyFT+lKaMtAOccg/cu1MJIli6PmdYy1L7sPS8YO93+dKIqfy/dy6gojAUzsaLCwYdi/MnNFHgsaR00huR6bLu/THAwZXzdwIDAQAB",
+    "oauth2": {
+        "client_id": "862546957628-vjdcj1r7f82uk26allsqvm109sci4vs4.apps.googleusercontent.com",
+        "scopes": [
+            "https://www.googleapis.com/auth/contacts"
+        ]
+    }
+}
