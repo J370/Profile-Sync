@@ -1,6 +1,7 @@
 var port = chrome.runtime.connect({
     name: "final"
 });
+
 port.onMessage.addListener(function (msg) {
     if (msg.give == "contact")
         console.log("Copy That")
@@ -23,6 +24,9 @@ function begin() {
                 for(i in dict[key]) {
                     if(dict[key][i] == null) {
                         dict[key][i] = value
+                    }
+                    else {
+                        dict[key].push(value)
                     }
                 }
             }
