@@ -20,14 +20,16 @@ function begin() {
 
         function addValue(key, value) {
             if(key in dict) {
-                var exist = false;
                 for(i in dict[key]) {
                     if(dict[key][i] == null) {
-                        dict[key] = [value]
+                        dict[key][i] = [value]
+                        var temp = {}
+                        temp[key] = [value]
+                        port.postMessage({
+                            cmd: "Contact",
+                            contacts: temp
+                        });
                     }
-                }
-                if(!exist) {
-                    dict[key].push(value)
                 }
             }
             else
@@ -112,10 +114,10 @@ function begin() {
                 }
                 console.log(contact)
                 observer.disconnect
-                port.postMessage({
-                    cmd: "Contact",
-                    contacts: contact
-                });
+                // port.postMessage({
+                //     cmd: "Contact",
+                //     contacts: contact
+                // });
             }
         }
 

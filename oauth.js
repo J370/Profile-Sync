@@ -4,15 +4,6 @@ window.addEventListener("load", function () {
     chrome.identity.getAuthToken({
         interactive: true
     }, function (token) {
-        let patch = {
-            method: 'PATCH',
-            async: true,
-            headers: {
-                Authorization: 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            },
-            'contentType': 'json'
-        };
         let get = {
             method: 'GET',
             async: true,
@@ -58,49 +49,57 @@ window.addEventListener("load", function () {
                         request(data).then(function () {
                             resolve()
                         })
-                        // console.warn(data.results[0].person.resourceName)
                     });
             })
         };
 
-        function toDataURL(src, callback, outputFormat) {
-            var img = new Image();
-            img.crossOrigin = 'Anonymous';
-            img.onload = function () {
-                var canvas = document.createElement('CANVAS');
-                var ctx = canvas.getContext('2d');
-                var dataURL;
-                canvas.height = this.naturalHeight;
-                canvas.width = this.naturalWidth;
-                ctx.drawImage(this, 0, 0);
-                dataURL = canvas.toDataURL(outputFormat);
-                callback(dataURL);
-            };
-            img.src = src;
-            if (img.complete || img.complete === undefined) {
-                img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
-                img.src = src;
-            }
+        function getBase64Image(img) {
+            return new Promise((data) => {
+                var canvas = document.createElement("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                data(canvas.toDataURL("image/png").replace(/^data:image\/(png|jpg|jpeg);base64,/, ""))
+            })
         }
 
         function pushOAuth(whatsapp) {
-            for(wha in whatsapp) {
-                toDataURL(whatsapp[wha])
-                console.log(a)
+            for (wha of Object.entries(whatsapp)) {
+                setTimeout(function() {
+                    const pick = Object.entries(contacts).find(([key, value]) => value[0] === wha[0])
+                    var img = new Image();
+                    img.src = wha[1][0]
+                    img.onload = function(value) {
+                        getBase64Image(value.target).then(data => {
+                            if (pick !== undefined) {
+                                pick[1].push(data)
+                                chrome.runtime.sendMessage({
+                                        urlbase: 'https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/',
+                                        image: {
+                                            "photoBytes": pick[1][2]
+                                        },
+                                        toke: token
+                                    }, 
+                                    (response) => {
+                                        
+                                    })
+                            }
+                        })
+                    }
+                }, 1000)
             }
         }
+        
+        getOAuth()
 
         chrome.runtime.onConnect.addListener(function (port) {
             console.assert(port.name == "final");
             port.onMessage.addListener(async function (msg) {
                 if (msg.cmd == "Contact") {
-                    getOAuth()
-                        .then(() => {
-                            console.log("completed")
-                            whatsapp = msg.contacts
-                            console.log(whatsapp)
-                            pushOAuth(whatsapp)
-                        })
+                    whatsapp = msg.contacts
+                    console.log(whatsapp)
+                    pushOAuth(whatsapp)
                 }
             });
         });
