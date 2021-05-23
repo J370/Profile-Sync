@@ -22,13 +22,7 @@ function begin() {
             if(key in dict) {
                 for(i in dict[key]) {
                     if(dict[key][i] == null) {
-                        dict[key][i] = [value]
-                        var temp = {}
-                        temp[key] = [value]
-                        port.postMessage({
-                            cmd: "Contact",
-                            contacts: temp
-                        });
+                        dict[key][i] = value
                     }
                 }
             }
@@ -114,10 +108,10 @@ function begin() {
                 }
                 console.log(contact)
                 observer.disconnect
-                // port.postMessage({
-                //     cmd: "Contact",
-                //     contacts: contact
-                // });
+                port.postMessage({
+                    cmd: "Contact",
+                    contacts: contact
+                });
             }
         }
 

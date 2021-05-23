@@ -66,28 +66,26 @@ window.addEventListener("load", function () {
 
         function pushOAuth(whatsapp) {
             for (wha of Object.entries(whatsapp)) {
-                setTimeout(function() {
-                    const pick = Object.entries(contacts).find(([key, value]) => value[0] === wha[0])
-                    var img = new Image();
-                    img.src = wha[1][0]
-                    img.onload = function(value) {
-                        getBase64Image(value.target).then(data => {
-                            if (pick !== undefined) {
-                                pick[1].push(data)
-                                chrome.runtime.sendMessage({
-                                        urlbase: 'https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/',
-                                        image: {
-                                            "photoBytes": pick[1][2]
-                                        },
-                                        toke: token
-                                    }, 
-                                    (response) => {
-                                        
-                                    })
-                            }
-                        })
-                    }
-                }, 1000)
+                const pick = Object.entries(contacts).find(([key, value]) => value[0] === wha[0])
+                var img = new Image();
+                img.src = wha[1][0]
+                img.onload = function(value) {
+                    getBase64Image(value.target).then(data => {
+                        if (pick !== undefined) {
+                            pick[1].push(data)
+                            chrome.runtime.sendMessage({
+                                    urlbase: 'https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/',
+                                    image: {
+                                        "photoBytes": pick[1][2]
+                                    },
+                                    toke: token
+                                }, 
+                                (response) => {
+                                    
+                                })
+                        }
+                    })
+                }
             }
         }
         
