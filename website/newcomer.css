@@ -1,0 +1,40 @@
+body,
+html {
+    height: 100%;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+}
+
+img {
+    width: 20%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+h1 {
+    text-align: center;
+}
+
+h2 {
+    font-size: 4vw;
+    text-align: right;
+    margin: 0;
+    margin-right: 2vw;
+}
+
+h4 {
+    margin-top: 1vh;
+}
+
+.start {
+    position: absolute;
+    right: 2vw;
+}
