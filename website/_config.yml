@@ -1,9 +1,7 @@
 title: Profile Image Sync
 email: jetong2001@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  Syncing contact images since 2021
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://pis.netlify.app/"
 # twitter_username: jekyllrb
@@ -13,6 +11,8 @@ url: "https://pis.netlify.app/"
 theme: minima
 plugins:
   - jekyll-feed
+
+google-analytics: UA-185888803-1
 
 # Exclude from processing.
 # The following items will not be processed, by default.
