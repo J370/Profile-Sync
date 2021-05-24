@@ -1,6 +1,6 @@
 chrome.runtime.onInstalled.addListener(() => {
     chrome.tabs.create({
-        url: 'https://pis.netlify.app/newcomer'
+        url: 'newcomer.html'
     });
     chrome.storage.local.set({
         "stage": "reset"
