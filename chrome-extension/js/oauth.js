@@ -89,26 +89,26 @@ window.addEventListener("load", function () {
                 img.onload = function () {
                     getBase64Image(this).then(data => {
                         if (pick !== undefined) {
-                            console.log(data)
+                            // console.log(data)
                             pick[1].push(data)
                             var ori = new Image();
                             ori.src = pick[1][1]
                             ori.crossOrigin = "anonymous"
                             ori.onload = function (value) {
-                                // getBase64Image(value.target).then(data2 => {
-                                //     if(data2 != data) {
-                                //         chrome.runtime.sendMessage({
-                                //             urlbase: 'https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/',
-                                //             image: {
-                                //                 "photoBytes": pick[1][2]
-                                //             },
-                                //             toke: token
-                                //         }, 
-                                //         (response) => {
+                                getBase64Image(value.target).then(data2 => {
+                                    if(data2 != data) {
+                                        chrome.runtime.sendMessage({
+                                            urlbase: 'https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/',
+                                            image: {
+                                                "photoBytes": pick[1][2]
+                                            },
+                                            toke: token
+                                        }, 
+                                        (response) => {
 
-                                //         })
-                                //     }
-                                // })
+                                        })
+                                    }
+                                })
                             }
                         }
                     })
