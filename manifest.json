@@ -1,14 +1,14 @@
 {
     "name": "Profile Image Sync",
     "description": "Sync images from Whatsapp",
-    "version": "1.0",
+    "version": "0.1.0",
     "manifest_version": 3,
     "icons": {
-        "16": "PIS-16.png",
-        "48": "PIS-48.png",
-        "128": "PIS-128.png"
+        "16": "img/PIS-16.png",
+        "48": "img/PIS-48.png",
+        "128": "img/PIS-128.png"
     },
-    "permissions": ["scripting", "identity"],
+    "permissions": ["scripting", "identity", "tabs", "storage"],
     "host_permissions": ["*://web.whatsapp.com/", "*://people.googleapis.com/*"],
     "action": {
         "default_popup": "index.html"

@@ -1,6 +1,23 @@
 window.addEventListener("load", function () {
     console.log('OAuth alive')
     var contacts = {}
+
+    function cache() {
+        chrome.storage.local.get(['stage'], function (result) {
+            document.getElementById("message").style.display = 'block'
+            document.getElementById("first").style.display = 'block'
+            if(result.stage == 'begin') {
+                document.getElementById("status").innerHTML = "Step 1 of 2: Getting Whatsapp Images"
+                document.getElementById("updates").innerHTML = "Make yourself a cup of coffee and come back to see that it is still running. 😉"
+                document.getElementById("first").style.display = 'none'
+            }
+            else if(result.stage == 'reset') {
+                document.getElementById("message").style.display = 'none'
+            }
+        });
+    }
+    cache()
+
     chrome.identity.getAuthToken({
         interactive: true
     }, function (token) {
@@ -56,8 +73,8 @@ window.addEventListener("load", function () {
         function getBase64Image(img) {
             return new Promise((data) => {
                 var canvas = document.createElement("canvas");
-                canvas.width = img.width;
-                canvas.height = img.height;
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
                 var ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0);
                 data(canvas.toDataURL("image/png").replace(/^data:image\/(png|jpg|jpeg);base64,/, ""))
@@ -68,45 +85,50 @@ window.addEventListener("load", function () {
             for (wha of Object.entries(whatsapp)) {
                 const pick = Object.entries(contacts).find(([key, value]) => value[0] === wha[0])
                 var img = new Image();
-                img.src = wha[1][0]
-                img.onload = function(value) {
-                    getBase64Image(value.target).then(data => {
+                img.crossOrigin = 'Anonymous';
+                img.onload = function () {
+                    getBase64Image(this).then(data => {
                         if (pick !== undefined) {
+                            console.log(data)
                             pick[1].push(data)
                             var ori = new Image();
                             ori.src = pick[1][1]
                             ori.crossOrigin = "anonymous"
-                            ori.onload = function(value) {
-                                getBase64Image(value.target).then(data2 => {
-                                    if(data2 != data) {
-                                        chrome.runtime.sendMessage({
-                                            urlbase: 'https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/',
-                                            image: {
-                                                "photoBytes": pick[1][2]
-                                            },
-                                            toke: token
-                                        }, 
-                                        (response) => {
-                                            
-                                        })
-                                    }
-                                })
+                            ori.onload = function (value) {
+                                // getBase64Image(value.target).then(data2 => {
+                                //     if(data2 != data) {
+                                //         chrome.runtime.sendMessage({
+                                //             urlbase: 'https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/',
+                                //             image: {
+                                //                 "photoBytes": pick[1][2]
+                                //             },
+                                //             toke: token
+                                //         }, 
+                                //         (response) => {
+
+                                //         })
+                                //     }
+                                // })
                             }
                         }
                     })
                 }
+                img.src = wha[1][0]
             }
         }
-        
-        getOAuth()
 
         chrome.runtime.onConnect.addListener(function (port) {
             console.assert(port.name == "final");
             port.onMessage.addListener(async function (msg) {
                 if (msg.cmd == "Contact") {
-                    whatsapp = msg.contacts
-                    console.log(whatsapp)
-                    pushOAuth(whatsapp)
+                    getOAuth().then(function () {
+                        whatsapp = msg.contacts
+                        console.log(whatsapp)
+                        pushOAuth(whatsapp)
+                    })
+                }
+                if (msg.cmd == "Update") {
+                    cache()
                 }
             });
         });

@@ -2,12 +2,19 @@ var port = chrome.runtime.connect({
     name: "final"
 });
 
-port.onMessage.addListener(function (msg) {
-    if (msg.give == "contact")
-        console.log("Copy That")
-});
+port.onMessage.addListener(function (msg) {});
+
+function storage(msg) {
+    chrome.storage.local.set({
+        "stage": msg
+    })
+    port.postMessage({cmd: "Update"});
+}
 
 function begin() {
+    
+    storage("begin")
+
     document.querySelectorAll('._1XaX-')[1].click();
 
     function scrollbegin() {
@@ -20,17 +27,15 @@ function begin() {
         };
 
         function addValue(key, value) {
-            if(key in dict) {
-                for(i in dict[key]) {
-                    if(dict[key][i] == null) {
+            if (key in dict) {
+                for (i in dict[key]) {
+                    if (dict[key][i] == null) {
                         dict[key][i] = value
-                    }
-                    else {
+                    } else {
                         dict[key].push(value)
                     }
                 }
-            }
-            else
+            } else
                 dict[key] = [value]
         }
 
@@ -42,8 +47,7 @@ function begin() {
                             pername = mutation.addedNodes[0].offsetParent.offsetParent.lastChild.firstChild.firstChild.firstChild.firstChild.title
                             addValue(pername, mutation.addedNodes[0].src)
                         }
-                    } catch {
-                    }
+                    } catch {}
                 } else if (mutation.type === 'attributes') {
                     if (mutation.attributeName == "title" && mutation.target.className === "_35k-1 _1adfa _3-8er") {
                         addValue(mutation.target.title, null)
@@ -65,10 +69,9 @@ function begin() {
             });
 
             for (var i = 0; i < document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er").length; i++) {
-                if(document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img")) {
+                if (document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img")) {
                     addValue(document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")[i].title, document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img").src);
-                }
-                else {
+                } else {
                     addValue(document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")[i].title, null);
                 }
                 observer.observe(document.querySelectorAll("._1Flk2._2DPZK ._2aBzC")[i], config);
@@ -78,7 +81,7 @@ function begin() {
         scroll = 0
 
         function scrolling() {
-            if (Math.ceil(document.querySelector("._1C2Q3._36Jt6").scrollHeight - document.querySelector("._1C2Q3._36Jt6").scrollTop) > document.querySelector("._1C2Q3._36Jt6").clientHeight + document.querySelector("[data-list-scroll-offset]").clientHeight/5) {
+            if (Math.ceil(document.querySelector("._1C2Q3._36Jt6").scrollHeight - document.querySelector("._1C2Q3._36Jt6").scrollTop) > document.querySelector("._1C2Q3._36Jt6").clientHeight + document.querySelector("[data-list-scroll-offset]").clientHeight / 5) {
                 setTimeout(function () {
                     try {
                         document.querySelector("._1C2Q3._36Jt6").scrollBy({
@@ -89,27 +92,27 @@ function begin() {
                         scroll++
                         scrolling();
                     } catch {
-                        console.log("Scrolling Done")
+                        storage("reset")
                         observer.disconnect
                     }
                 }, 3000);
             } else {
                 const contact = {}
-                for(i in dict)
-                {
+                for (i in dict) {
                     var value = false
-                    for(con in dict[i]) {
-                        if(dict[i][con] != null) {
+                    for (con in dict[i]) {
+                        if (dict[i][con] != null) {
                             value = true
                         }
                     }
-                    if(value) {
+                    if (value) {
                         contact[i] = Array.from(new Set(dict[i]))
-                        if(contact[i].length > 1) {
+                        if (contact[i].length > 1) {
                             console.log("Duplicates detected")
                         }
                     }
                 }
+                storage("reset")
                 console.log(contact)
                 observer.disconnect
                 port.postMessage({
@@ -140,10 +143,13 @@ function begin() {
     }
 }
 
-if (document.querySelectorAll("._3h3LX._34ybp.app-wrapper-web.font-fix").length == 0) {
+if (document.querySelectorAll("._1XaX-").length == 0) {
     var front = new MutationObserver(function (mutations, me) {
-        if (document.querySelectorAll("._3h3LX._34ybp.app-wrapper-web.font-fix").length == 1) {
-            begin();
+        if (document.querySelectorAll("._1XaX-").length > 0) {
+            console.log("begin")
+            setTimeout(() => {
+                begin();
+            }, 3000)
             me.disconnect();
             return;
         }

@@ -1,24 +1,39 @@
 <!-- <button id="clickactivity">click</button>  
-    <script src="popup.js"></script>  -->
+    <script src="js/popup.js"></script>  -->
 <!DOCTYPE html>
 <html>
 
 <head>
   <title>FriendBlock</title>
-  <style>
-    button {
-      padding: 10px;
-      background-color: #3C79F8;
-      display: inline-block;
-    }
-  </style>
-  <script type="text/javascript" src="oauth.js"></script>
-  <script type="text/javascript" src="popup.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link href="index.css" rel="stylesheet">
+  <script type="text/javascript" src="js/oauth.js"></script>
+  <script type="text/javascript" src="js/popup.js"></script>
+  <meta charset="UTF-8">
 </head>
 
 <body>
-  <button id="test">FriendBlock Contacts</button>
-  <div id="friendDiv"></div>
+  <h3>
+    <i class="material-icons mdc-button__icon" aria-hidden="true">person</i>
+    Profile Image Sync
+  </h3>
+  <div id="first">
+    <h5 id="warning">
+      Existing contact images will be over-written!
+    </h5>
+    <a id="begin" class="waves-effect waves-light btn">
+      <i class="material-icons left">warning</i>
+      Begin
+    </a>
+  </div>
+  <div id="message">
+    <!-- <div class="progress">
+      <div class="determinate" style="width: 70%"></div>
+    </div> -->
+    <h5 id="status"></h5>
+    <h6 id="updates"></h6>
+  </div>
 </body>
 
 </html>

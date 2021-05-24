@@ -1,0 +1,11 @@
+html {
+    padding: 2vw;
+}
+
+h3 {
+    white-space: nowrap;
+}
+
+#warning {
+    color: #B00020;
+}
