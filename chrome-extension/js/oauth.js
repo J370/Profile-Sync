@@ -6,6 +6,9 @@ window.addEventListener("load", function () {
         chrome.storage.local.get(['stage'], function (result) {
             document.getElementById("message").style.display = 'block'
             document.getElementById("first").style.display = 'block'
+            if (result.authenticate == true) {
+                
+            }
             if (result.stage == 'begin') {
                 document.getElementById("status").innerHTML = "Step 1 of 2: Getting Whatsapp Images"
                 document.getElementById("updates").innerHTML = "Make yourself a cup of coffee and come back to see that it is still running. 😉"
@@ -20,6 +23,7 @@ window.addEventListener("load", function () {
     chrome.identity.getAuthToken({
         interactive: true
     }, function (token) {
+        console.log(token)
         var apiKey
         fetch('config.json')
             .then((response) => response.json())

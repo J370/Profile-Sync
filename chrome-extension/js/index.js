@@ -143,22 +143,27 @@ function begin() {
     }
 }
 
-if (document.querySelectorAll("._1XaX-").length == 0) {
-    var front = new MutationObserver(function (mutations, me) {
-        if (document.querySelectorAll("._1XaX-").length > 0) {
-            console.log("begin")
-            setTimeout(() => {
-                begin();
-            }, 3000)
-            me.disconnect();
-            return;
+var loaded = true
+var front = new MutationObserver(function (mutations, me) {
+    if(document.querySelectorAll("._1XaX-").length !== 0) {
+        if(loaded) {
+            begin();
         }
-    });
+        else {
+            setTimeout(()=> {
+                begin();
+                
+            },3000)
+        }
+        me.disconnect();
+        return;
+    }
+    else {
+        loaded = false
+    }
+});
 
-    front.observe(document, {
-        childList: true,
-        subtree: true
-    });
-} else {
-    begin()
-}
+front.observe(document, {
+    childList: true,
+    subtree: true
+});
