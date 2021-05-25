@@ -70,12 +70,10 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  jekyll (~> 4.2.0)
+  bundler
+  jekyll
   jekyll-feed (~> 0.12)
-  minima (~> 2.5)
-  tzinfo (~> 1.2)
-  tzinfo-data
-  wdm (~> 0.1.1)
+  minima
 
 BUNDLED WITH
    2.2.5

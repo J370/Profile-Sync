@@ -6,7 +6,8 @@ categories: policy
 ---
 # Privacy Policy for Profile Image Sync
 
-At Profile Image Sync, accessible from https://chrome.google.com/webstore/detail/lfplcgpfghfgnndjcpohkdfpkmdmijcc, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by Profile Image Sync and how we use it.
+At Profile Image Sync, accessible from <br/> https://chrome.google.com/webstore/detail/lfplcgpfghfgnndjcpohkdfpkmdmijcc,
+one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by Profile Image Sync and how we use it.
 
 If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us.
 
