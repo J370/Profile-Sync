@@ -10,3 +10,10 @@ h3 {
 #warning {
     color: #B00020;
 }
+
+#web {
+    position: absolute;
+    right: 2vw;
+    bottom: 0;
+    color: #5f6368;
+}
