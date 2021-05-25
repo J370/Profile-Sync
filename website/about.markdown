@@ -6,3 +6,4 @@ permalink: /about/
 
 Profile Image Sync is a Chrome Extension that helps you to sync your contact's Whatsapp images with your Google Contacts.
 
+[![Chrome Extension](/img/chrome.png)](https://chrome.google.com/webstore/detail/lfplcgpfghfgnndjcpohkdfpkmdmijcc){:target="_blank"}
