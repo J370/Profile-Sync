@@ -26,7 +26,6 @@ window.onload = function () {
 
             function myListener(tabId, changeInfo, tab) {
                 if (tab.url.indexOf('https://web.whatsapp.com') != -1 && changeInfo.status === 'complete') {
-                    console.log("Begin")
                     chrome.tabs.onUpdated.removeListener(myListener);
                     execute(tab)
                 }
