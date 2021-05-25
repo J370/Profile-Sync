@@ -4,6 +4,7 @@ html {
 
 h3 {
     white-space: nowrap;
+    margin-top: 0;
 }
 
 #warning {

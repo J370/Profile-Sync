@@ -6,12 +6,11 @@ window.addEventListener("load", function () {
         chrome.storage.local.get(['stage'], function (result) {
             document.getElementById("message").style.display = 'block'
             document.getElementById("first").style.display = 'block'
-            if(result.stage == 'begin') {
+            if (result.stage == 'begin') {
                 document.getElementById("status").innerHTML = "Step 1 of 2: Getting Whatsapp Images"
                 document.getElementById("updates").innerHTML = "Make yourself a cup of coffee and come back to see that it is still running. 😉"
                 document.getElementById("first").style.display = 'none'
-            }
-            else if(result.stage == 'reset') {
+            } else if (result.stage == 'reset') {
                 document.getElementById("message").style.display = 'none'
             }
         });
@@ -21,6 +20,11 @@ window.addEventListener("load", function () {
     chrome.identity.getAuthToken({
         interactive: true
     }, function (token) {
+        var apiKey
+        fetch('config.json')
+            .then((response) => response.json())
+            .then((data) => apiKey = data.key)
+
         let get = {
             method: 'GET',
             async: true,
@@ -31,7 +35,7 @@ window.addEventListener("load", function () {
             'contentType': 'json'
         };
 
-        function getOAuth() {
+        function getOAuth(apiKey) {
             console.log('OAuth running');
 
             function appendContact(data) {
@@ -44,7 +48,7 @@ window.addEventListener("load", function () {
             function request(data) {
                 return new Promise((done) => {
                     if (data.nextPageToken) {
-                        fetch('https://people.googleapis.com/v1/people/me/connections/?pageToken=' + data.nextPageToken + '&pageSize=1000&personFields=names,photos&key=AIzaSyBX-L2C9_IIRIJL3tPBli0dKfXAJTc4Lew', get)
+                        fetch('https://people.googleapis.com/v1/people/me/connections/?pageToken=' + data.nextPageToken + '&pageSize=1000&personFields=names,photos&key=' + apiKey, get)
                             .then((response) => response.json())
                             .then(function (data) {
                                 appendContact(data);
@@ -59,7 +63,7 @@ window.addEventListener("load", function () {
             }
 
             return new Promise((resolve) => {
-                fetch('https://people.googleapis.com/v1/people/me/connections/?pageSize=1000&personFields=names,photos&key=AIzaSyBX-L2C9_IIRIJL3tPBli0dKfXAJTc4Lew', get)
+                fetch('https://people.googleapis.com/v1/people/me/connections/?pageSize=1000&personFields=names,photos&key=' + apiKey, get)
                     .then((response) => response.json())
                     .then(function (data) {
                         appendContact(data);
@@ -96,17 +100,18 @@ window.addEventListener("load", function () {
                             ori.crossOrigin = "anonymous"
                             ori.onload = function (value) {
                                 getBase64Image(value.target).then(data2 => {
-                                    if(data2 != data) {
+                                    if (data2 != data) {
                                         chrome.runtime.sendMessage({
-                                            urlbase: 'https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/',
-                                            image: {
-                                                "photoBytes": pick[1][2]
+                                                urlbase: 'https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/',
+                                                image: {
+                                                    "photoBytes": pick[1][2]
+                                                },
+                                                toke: token,
+                                                key: apiKey
                                             },
-                                            toke: token
-                                        }, 
-                                        (response) => {
+                                            (response) => {
 
-                                        })
+                                            })
                                     }
                                 })
                             }
@@ -121,7 +126,7 @@ window.addEventListener("load", function () {
             console.assert(port.name == "final");
             port.onMessage.addListener(async function (msg) {
                 if (msg.cmd == "Contact") {
-                    getOAuth().then(function () {
+                    getOAuth(apiKey).then(function () {
                         whatsapp = msg.contacts
                         console.log(whatsapp)
                         pushOAuth(whatsapp)
@@ -134,22 +139,3 @@ window.addEventListener("load", function () {
         });
     });
 });
-
-// fetch('https://people.googleapis.com/v1/contactGroups/all?maxMembers=100&key=AIzaSyBX-L2C9_IIRIJL3tPBli0dKfXAJTc4Lew',
-//         get)
-//     .then((response) => response.json())
-//     .then(function (data) {
-//         let photoDiv = document.querySelector('#friendDiv');
-//         let returnedContacts = data.memberResourceNames;
-//         for (let i = 0; i < returnedContacts.length; i++) {
-//             fetch('https://people.googleapis.com/v1/' + returnedContacts[i] +
-//                     '?personFields=photos&key=AIzaSyBX-L2C9_IIRIJL3tPBli0dKfXAJTc4Lew',
-//                     get)
-//                 .then((response) => response.json())
-//                 .then(function (data) {
-//                     let profileImg = document.createElement('img');
-//                     profileImg.src = data.photos[0].url;
-//                     photoDiv.appendChild(profileImg);
-//                 });
-//         };
-//     });

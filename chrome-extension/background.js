@@ -13,7 +13,7 @@ chrome.runtime.onMessage.addListener(function update(message) {
             async: true,
             body: JSON.stringify(message.image),
             headers: {
-                'X-API-KEY': "AIzaSyBX-L2C9_IIRIJL3tPBli0dKfXAJTc4Lew",
+                'X-API-KEY': message.key,
                 Authorization: 'Bearer ' + message.toke,
                 'Content-Type': 'application/json'
             },
