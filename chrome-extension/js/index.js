@@ -45,7 +45,18 @@ function begin() {
                     try {
                         if (mutation.addedNodes[0].nodeName == "IMG" && mutation.target.className === "-y4n1") {
                             pername = mutation.addedNodes[0].offsetParent.offsetParent.lastChild.firstChild.firstChild.firstChild.firstChild.title
-                            addValue(pername, mutation.addedNodes[0].src)
+                            var canvas = document.createElement('CANVAS');
+                            var ctx = canvas.getContext('2d');
+                            canvas.height = mutation.addedNodes[0].naturalHeight;
+                            canvas.width = mutation.addedNodes[0].naturalWidth;
+                            ctx.drawImage(mutation.addedNodes[0], 0, 0);
+                            dataURL = canvas.toDataURL().replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+                            if (dataURL == "data:,") {
+                                addValue(pername, null)
+                            }
+                            else {
+                                addValue(pername, dataURL)
+                            }
                         }
                     } catch {}
                 } else if (mutation.type === 'attributes') {
@@ -70,7 +81,13 @@ function begin() {
 
             for (var i = 0; i < document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er").length; i++) {
                 if (document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img")) {
-                    addValue(document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")[i].title, document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img").src);
+                    var canvas = document.createElement('CANVAS');
+                    var ctx = canvas.getContext('2d');
+                    canvas.height = document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img").naturalHeight;
+                    canvas.width = document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img").naturalWidth;
+                    ctx.drawImage(document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img"), 0, 0);
+                    dataURL = canvas.toDataURL().replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+                    addValue(document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")[i].title, dataURL);
                 } else {
                     addValue(document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")[i].title, null);
                 }
@@ -95,7 +112,7 @@ function begin() {
                         storage("reset")
                         observer.disconnect
                     }
-                }, 3000);
+                }, 1500);
             } else {
                 const contact = {}
                 for (i in dict) {
@@ -143,6 +160,11 @@ function begin() {
     }
 }
 
+console.log(document.querySelectorAll("._1XaX-").length)
+if(document.querySelectorAll("._1XaX-").length !== 0) {
+    document.querySelectorAll('._1XaX-')[1].click();
+}
+
 var loaded = true
 var front = new MutationObserver(function (mutations, me) {
     if(document.querySelectorAll("._1XaX-").length !== 0) {
@@ -152,7 +174,6 @@ var front = new MutationObserver(function (mutations, me) {
         else {
             setTimeout(()=> {
                 begin();
-                
             },3000)
         }
         me.disconnect();

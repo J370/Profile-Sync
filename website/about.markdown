@@ -25,6 +25,4 @@ Any data being processed by the extension never leaves your computer and will be
  
 ### Get it now!
  
-[![Chrome Extension](/img/chrome.png)](https://chrome.google.com/webstore/detail/lfplcgpfghfgnndjcpohkdfpkmdmijcc){:target="\_blank"}
-<br />
-Extension is currently not listed because API is still pending approval.
+[![Chrome Extension](/img/chrome.png)](https://chrome.google.com/webstore/detail/profile-image-sync/lfplcgpfghfgnndjcpohkdfpkmdmijcc){:target="\_blank"}

@@ -1,37 +1,30 @@
 window.onload = function () {
+    var port = chrome.runtime.connect({
+        name: "final"
+    });
     document.getElementById("begin").addEventListener('click', async () => {
-        let [tab] = await chrome.tabs.query({
+        chrome.tabs.query({
             active: true,
             currentWindow: true
-        });
-
-        function execute(tab) {
-            chrome.scripting.executeScript({
-                target: {
-                    tabId: tab.id
-                },
-                files: ["js/index.js"]
-            })
-            chrome.storage.local.set({
-                "tab": tab.id
-            })
-        }
-
-        if (tab.url.includes("web.whatsapp.com")) {
-            execute(tab)
-        } else {
-            chrome.tabs.create({
-                url: 'https://web.whatsapp.com'
-            });
-
-            function myListener(tabId, changeInfo, tab) {
-                if (tab.url.indexOf('https://web.whatsapp.com') != -1 && changeInfo.status === 'complete') {
-                    chrome.tabs.onUpdated.removeListener(myListener);
-                    execute(tab)
-                }
+        }, (data)=>{
+            tab = data[0]
+    
+            if (tab.url.includes("web.whatsapp.com")) {
+                chrome.tabs.executeScript(tab.id, {
+                    file: "js/index.js"
+                })
+                chrome.storage.local.set({
+                    "tab": tab.id
+                })
+            } else {
+                chrome.tabs.create({
+                    url: 'https://web.whatsapp.com'
+                });
+    
+                port.postMessage({
+                    cmd: "Open",
+                });
             }
-
-            chrome.tabs.onUpdated.addListener(myListener)
-        }
+        });
     });
 }

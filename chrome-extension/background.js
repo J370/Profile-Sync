@@ -28,25 +28,29 @@ chrome.runtime.onConnect.addListener(function (port) {
         .then((response) => response.json())
         .then((data) => apiKey = data.key)
 
-    // fetch(message.urlbase, {
-    //         method: 'PATCH',
-    //         async: true,
-    //         body: JSON.stringify(message.image),
-    //         headers: {
-    //             'X-API-KEY': message.key,
-    //             Authorization: 'Bearer ' + message.toke,
-    //             'Content-Type': 'application/json'
-    //         },
-    //         'contentType': 'json'
-    //     })
-    //     .then((response) => {
-    //         if (response.status !== 200) {
-    //             setTimeout(function () {
-    //                 console.log(response.url)
-    //                 update(message)
-    //             }, 60000)
-    //         }
-    //     })
+    function patch(url, img) {
+        fetch(url, {
+            method: 'PATCH',
+            async: true,
+            body: JSON.stringify({
+                "photoBytes": img
+            }),
+            headers: {
+                'X-API-KEY': apiKey,
+                Authorization: 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            'contentType': 'json'
+        })
+        .then((response) => {
+            if (response.status !== 200) {
+                setTimeout(function () {
+                    console.log(response.url)
+                    patch(url, img)
+                }, 60000)
+            }
+        })
+    }
 
     let get = {
         method: 'GET',
@@ -95,61 +99,51 @@ chrome.runtime.onConnect.addListener(function (port) {
                 });
         })
     };
-
-    function getBase64Image(img) {
-        return new Promise((data) => {
-            var canvas = document.createElement("canvas");
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            var ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0);
-            data(canvas.toDataURL("image/png").replace(/^data:image\/(png|jpg|jpeg);base64,/, ""))
-        })
-    }
+    const toDataURL = url => fetch(url)
+        .then(response => response.blob())
+        .then(blob => new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onloadend = () => resolve(reader.result.replace(/^data:image\/(png|jpg|jpeg);base64,/, ""))
+            reader.onerror = reject
+            reader.readAsDataURL(blob)
+        }))
 
     function pushOAuth(whatsapp) {
         for (wha of Object.entries(whatsapp)) {
             const pick = Object.entries(contacts).find(([key, value]) => value[0] === wha[0])
-            var img = new Image();
-            console.log(img)
-            img.crossOrigin = 'Anonymous';
-            img.onload = function () {
-                getBase64Image(this).then(data => {
-                    if (pick !== undefined) {
-                        pick[1].push(data)
-                        var ori = new Image();
-                        ori.src = pick[1][1]
-                        ori.crossOrigin = "anonymous"
-                        ori.onload = function (value) {
-                            getBase64Image(value.target).then(data2 => {
-                                if (data2 != data) {
-                                    // chrome.runtime.sendMessage({
-                                    //         urlbase: 'https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/',
-                                    //         image: {
-                                    //             "photoBytes": pick[1][2]
-                                    //         },
-                                    //         toke: token,
-                                    //         key: apiKey
-                                    //     },
-                                    //     (response) => {
-
-                                    //     })
-                                }
-                            })
-                        }
+            if (pick !== undefined) {
+                toDataURL(pick[1][1]).then(ori => {
+                    if (ori != wha[1][0]) {
+                        patch('https://people.googleapis.com/v1/' + pick[0] + ':updateContactPhoto/', wha[1][0])
                     }
                 })
             }
-            img.src = wha[1][0]
         }
     }
     
     port.onMessage.addListener(async function (msg) {
+        console.log(msg)
         if (msg.cmd == "Contact") {
             getOAuth().then(function () {
                 whatsapp = msg.contacts
+                console.log(whatsapp)
                 pushOAuth(whatsapp)
             })
+        }
+        else if (msg.cmd == "Open") {
+            function myListener(tabId, changeInfo, tab) {
+                if (tab.url.indexOf('https://web.whatsapp.com') != -1 && changeInfo.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(myListener);
+                    chrome.tabs.executeScript(tabId, {
+                        file: "js/index.js"
+                    })
+                    chrome.storage.local.set({
+                        "tab": tabId
+                    })
+                }
+            }
+
+            chrome.tabs.onUpdated.addListener(myListener)
         }
     })
 })
