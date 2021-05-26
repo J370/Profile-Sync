@@ -27,16 +27,10 @@ function begin() {
         };
 
         function addValue(key, value) {
-            if (key in dict) {
-                for (i in dict[key]) {
-                    if (dict[key][i] == null) {
-                        dict[key][i] = value
-                    } else {
-                        dict[key].push(value)
-                    }
-                }
-            } else
-                dict[key] = [value]
+            port.postMessage({
+                cmd: "Contact",
+                contacts: [key, value]
+            });
         }
 
         const callback = function (mutationsList, observer) {
@@ -55,7 +49,7 @@ function begin() {
                                 addValue(pername, null)
                             }
                             else {
-                                addValue(pername, dataURL)
+                                addValue(pername, [dataURL, mutation.addedNodes[0].src])
                             }
                         }
                     } catch {}
@@ -71,12 +65,15 @@ function begin() {
         const observer = new MutationObserver(callback);
 
         setTimeout(function () {
-            console.log('Scrolling')
 
             document.querySelector("._1C2Q3._36Jt6").scroll({
                 top: 0,
                 left: 0,
                 behavior: 'smooth'
+            });
+
+            port.postMessage({
+                cmd: "Flow",
             });
 
             for (var i = 0; i < document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er").length; i++) {
@@ -87,7 +84,7 @@ function begin() {
                     canvas.width = document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img").naturalWidth;
                     ctx.drawImage(document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img"), 0, 0);
                     dataURL = canvas.toDataURL().replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
-                    addValue(document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")[i].title, dataURL);
+                    addValue(document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")[i].title, [dataURL, document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img").src]);
                 } else {
                     addValue(document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")[i].title, null);
                 }
@@ -114,28 +111,25 @@ function begin() {
                     }
                 }, 1500);
             } else {
-                const contact = {}
-                for (i in dict) {
-                    var value = false
-                    for (con in dict[i]) {
-                        if (dict[i][con] != null) {
-                            value = true
-                        }
-                    }
-                    if (value) {
-                        contact[i] = Array.from(new Set(dict[i]))
-                        if (contact[i].length > 1) {
-                            console.log("Duplicates detected")
-                        }
-                    }
-                }
-                storage("reset")
-                console.log(contact)
-                observer.disconnect
-                port.postMessage({
-                    cmd: "Contact",
-                    contacts: contact
-                });
+                // const contact = {}
+                // for (i in dict) {
+                //     var value = false
+                //     for (con in dict[i]) {
+                //         if (dict[i][con] != null) {
+                //             value = true
+                //         }
+                //     }
+                //     if (value) {
+                //         contact[i] = Array.from(new Set(dict[i]))
+                //         if (contact[i].length > 1) {
+                //             console.log("Duplicates detected")
+                //         }
+                //     }
+                // }
+                setTimeout(()=>{
+                    storage("reset")
+                    observer.disconnect
+                }, 2000)
             }
         }
 
@@ -160,7 +154,6 @@ function begin() {
     }
 }
 
-console.log(document.querySelectorAll("._1XaX-").length)
 if(document.querySelectorAll("._1XaX-").length !== 0) {
     document.querySelectorAll('._1XaX-')[1].click();
 }
