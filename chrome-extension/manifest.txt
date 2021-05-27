@@ -1,0 +1,8 @@
+"background": {
+        "service_worker": "background.js"
+    },
+
+"background": {
+        "scripts": ["background.js"],
+        "persistent": true
+    },

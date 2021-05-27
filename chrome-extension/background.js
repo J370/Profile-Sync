@@ -13,6 +13,7 @@ chrome.runtime.onInstalled.addListener(() => {
     chrome.tabs.create({
         url: 'newcomer.html'
     });
+   chrome.identity.clearAllCachedAuthTokens(()=>{})
     chrome.storage.local.set({
         "stage": "reset"
     })
@@ -29,11 +30,14 @@ chrome.runtime.onInstalled.addListener(() => {
     })
 });
 
+chrome.storage.local.set({
+    "up": ["0 out of 0 ..."]
+})
+
 chrome.runtime.onConnect.addListener(function (port) {
     console.assert(port.name == "final");
     var contacts = {}
     var whatsapp = {}
-    var dict = {}
     var duplicates = {}
 
     function storage(value, msg) {
@@ -41,7 +45,6 @@ chrome.runtime.onConnect.addListener(function (port) {
             [value]: msg
         })
     }
-    storage("up", ["0 out of 0 ..."])
 
     var apiKey
     fetch('config.json')
@@ -66,15 +69,19 @@ chrome.runtime.onConnect.addListener(function (port) {
                 'contentType': 'json'
             })
             .then((response) => {
-                if (response.status !== 200) {
-                    setTimeout(()=>{
-                        patch(url, img).then(()=>{
-                            resolve()
-                        })
-                    },5000)
-                }
-                else {
-                    resolve()
+                switch(response.status){
+                    case 200:
+                        resolve()
+                        break;
+                    case 400:
+                        resolve()
+                        break;
+                    default:
+                        setTimeout(()=>{
+                            patch(url, img).then(()=>{
+                                resolve()
+                            })
+                        },5000)
                 }
             })
             .catch(()=>{
@@ -131,11 +138,20 @@ chrome.runtime.onConnect.addListener(function (port) {
         })
     };
 
+    const toDataURL = url => fetch(url)
+        .then(response => response.blob())
+        .then(blob => new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onloadend = () => resolve(reader.result.replace(/^data:image\/(png|jpg|jpeg);base64,/, ""))
+            reader.onerror = reject
+            reader.readAsDataURL(blob)
+        }))
+
     function pushOAuth(i) {
+        background++
+        storage("up", [background + " out of " + index + " ..."])
         function run() {
             if(!nucBtn) {
-                background++
-                storage("up", [background + " out of " + index + " ..."])
                 pushOAuth(0)
             }
         }
@@ -144,7 +160,7 @@ chrome.runtime.onConnect.addListener(function (port) {
         console.log(key)
         delete whatsapp[key]
         if(value != undefined) {
-            if(value[0] !== null) {
+            if(value[0] !== null && value[0][0] != "data:,") {
                 var count = 0
                 var person = []
                 for(var contact in contacts) {
@@ -167,8 +183,10 @@ chrome.runtime.onConnect.addListener(function (port) {
                 }
                 if (count == 1) {
                     console.log("Updated")
-                    patch('https://people.googleapis.com/v1/' + person[0] + ':updateContactPhoto/', value[0][0]).then(() => {
-                        run()
+                    toDataURL(value[0][1]).then((base64)=> {
+                        patch('https://people.googleapis.com/v1/' + person[0] + ':updateContactPhoto/', base64).then(() => {
+                            run()
+                        })
                     })
                 }
                 else {
@@ -204,6 +222,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                 storage("stage", "duplicates")
             }
             else {
+                storage("up", [undefined])
                 storage("stage", "done")
             }
         }
@@ -212,17 +231,6 @@ chrome.runtime.onConnect.addListener(function (port) {
     function addWhatsapp(data) {
         key = data[0]
         value = data[1]
-        if (key in dict) {
-            for (i in dict[key]) {
-                if (dict[key][i] == null) {
-                    dict[key][i] = value
-                } else {
-                    dict[key].push(value)
-                }
-            }
-        } else {
-            dict[key] = [value]
-        }
         if (key in whatsapp) {
             for (i in whatsapp[key]) {
                 if (whatsapp[key][i] == null) {
@@ -238,8 +246,8 @@ chrome.runtime.onConnect.addListener(function (port) {
 
     port.onMessage.addListener(async function (msg) {
         if (msg.cmd == "Contact") { 
-            addWhatsapp(msg.contacts)
             index ++
+            addWhatsapp(msg.contacts)
         }
         else if (msg.cmd == "Flow") {
             nucBtn = false
@@ -248,7 +256,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                     for(var i = 0; i < parallel; i++) {
                         setTimeout((count)=>{
                             pushOAuth(count)
-                        }, 2000 * (i + 1), i)
+                        }, 3000 * (i + 1), i)
                     }
                 })
             }
@@ -257,7 +265,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                 for(var i = 0; i < 3; i++) {
                     setTimeout((count)=>{
                         pushOAuth(count)
-                    }, 2000 * (i + 1), i)
+                    }, 3000 * (i + 1), i)
                 }
             }
         }
@@ -284,7 +292,9 @@ chrome.runtime.onConnect.addListener(function (port) {
 chrome.tabs.onRemoved.addListener(function (tabid, removed) {
     chrome.storage.local.get(['tab'], function (result) {
         if (result.tab == tabid) {
-            storage("stage", "reset")
+            chrome.storage.local.set({
+                "stage": "reset"
+            })
         }
     })
 })
