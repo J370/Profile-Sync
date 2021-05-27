@@ -1,12 +1,14 @@
+//If you are seeing this, wish you luck to your eyes.
+
 var token;
 var parallel = 3;
 chrome.storage.local.get(['key'], function (result) {
     token = result.key
 })
 chrome.runtime.onInstalled.addListener(() => {
-    // chrome.tabs.create({
-    //     url: 'newcomer.html'
-    // });
+    chrome.tabs.create({
+        url: 'newcomer.html'
+    });
     chrome.storage.local.set({
         "stage": "reset"
     })
@@ -28,7 +30,14 @@ chrome.runtime.onConnect.addListener(function (port) {
     var contacts = {}
     var whatsapp = {}
     var dict = {}
-    var duplicates = []
+    var duplicates = {}
+
+    function storage(msg) {
+        chrome.storage.local.set({
+            "stage": msg
+        })
+        port.postMessage({cmd: "Update"});
+    }
 
     var apiKey
     fetch('config.json')
@@ -54,12 +63,18 @@ chrome.runtime.onConnect.addListener(function (port) {
             })
             .then((response) => {
                 if (response.status !== 200) {
-                    console.log(response.url)
-                    patch(url, img)
+                    setTimeout(()=>{
+                        patch(url, img).then(()=>{
+                            resolve()
+                        })
+                    },5000)
                 }
                 else {
                     resolve()
                 }
+            })
+            .catch(()=>{
+                resolve()
             })
         })
     }
@@ -79,14 +94,14 @@ chrome.runtime.onConnect.addListener(function (port) {
 
         function appendContact(data) {
             for (var i = 0; i < Math.ceil(data.connections.length); i++) {
-                contacts[data.connections[i].resourceName] = [data.connections[i].names[0].displayName, data.connections[i].photos[0].url];
+                contacts[data.connections[i].resourceName] = [data.connections[i].names[0].displayName, data.connections[i].phoneNumbers];
             }
         }
 
         function request(data) {
             return new Promise((done) => {
                 if (data.nextPageToken) {
-                    fetch('https://people.googleapis.com/v1/people/me/connections/?pageToken=' + data.nextPageToken + '&pageSize=1000&personFields=names,photos&key=' + apiKey, get)
+                    fetch('https://people.googleapis.com/v1/people/me/connections/?pageToken=' + data.nextPageToken + '&pageSize=1000&personFields=names,phoneNumbers&key=' + apiKey, get)
                         .then((response) => response.json())
                         .then(function (data) {
                             appendContact(data);
@@ -101,7 +116,7 @@ chrome.runtime.onConnect.addListener(function (port) {
         }
 
         return new Promise((resolve) => {
-            fetch('https://people.googleapis.com/v1/people/me/connections/?pageSize=1000&personFields=names,photos&key=' + apiKey, get)
+            fetch('https://people.googleapis.com/v1/people/me/connections/?pageSize=1000&personFields=names,phoneNumbers&key=' + apiKey, get)
                 .then((response) => response.json())
                 .then(function (data) {
                     appendContact(data);
@@ -111,57 +126,65 @@ chrome.runtime.onConnect.addListener(function (port) {
                 });
         })
     };
-    const toDataURL = url => fetch(url)
-        .then(response => response.blob())
-        .then(blob => new Promise((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onloadend = () => resolve([reader.result.replace(/^data:image\/(png|jpg|jpeg);base64,/, "")])
-            reader.onerror = reject
-            reader.readAsDataURL(blob)
-        }))
 
     function pushOAuth(i) {
         function run() {
-            delete whatsapp[key]
-            pushOAuth(parallel - 1)
+            pushOAuth(0)
         }
         var key = Object.keys(whatsapp)[0+i]
         var value = whatsapp[key]
         console.log(key)
+        delete whatsapp[key]
         if(value != undefined) {
             if(value[0] !== null) {
-                var imageData = value[0][0]
-                // var source = value[0][1]
                 var count = 0
-                var personId
+                var person = []
                 for(var contact in contacts) {
                     if(contacts[contact][0] == key)
                     {
                         count += 1
-                        personId = contact
+                        person.push(contact)
                     }
                 }
                 if (count == 1) {
-                    toDataURL(contacts[personId][1]).then(ori => {
-                        if (ori[0] != imageData) {
-                            console.log("Updated")
-                            patch('https://people.googleapis.com/v1/' + personId + ':updateContactPhoto/', imageData).then(() => {
-                                run()
-                            })
-                        } else {
-                            console.log("Kept")
-                            run()
-                        }
+                    console.log("Updated")
+                    patch('https://people.googleapis.com/v1/' + person[0] + ':updateContactPhoto/', value[0][0]).then(() => {
+                        run()
                     })
                 }
                 else {
-                    console.log("Duplicated")
-                    duplicates.push(key)
+                    for(var i in person) {
+                        if(duplicates[key]) {
+                            duplicates[key].push(contacts[[person[i]]][1][0])
+                        }
+                        else {
+                            duplicates[key] = [contacts[[person[i]]][1][0]]
+                        }
+                    }
+                    console.log("Duplicate")
                     run()
                 }
             } else {
                 console.log("No image")
                 run()
+            }
+        }
+        else {
+            duplicate()
+        }
+    }
+
+    function duplicate() {
+        --parallel
+        if(parallel == 0) {
+            if (Object.keys(duplicates).length > 0) {
+                port.postMessage({
+                    cmd: "duplicate",
+                    list: duplicates
+                })
+            }
+            else {
+                storage("done")
             }
         }
     }
@@ -195,7 +218,12 @@ chrome.runtime.onConnect.addListener(function (port) {
     
     port.onMessage.addListener(async function (msg) {
         if (msg.cmd == "Contact") { 
-            addWhatsapp(msg.contacts)
+            if(parallel != 0) {
+                addWhatsapp(msg.contacts)
+            }
+            else {
+                
+            }
         }
         else if (msg.cmd == "Flow") {
             getOAuth().then(()=>{
@@ -227,9 +255,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 chrome.tabs.onRemoved.addListener(function (tabid, removed) {
     chrome.storage.local.get(['tab'], function (result) {
         if (result.tab == tabid) {
-            chrome.storage.local.set({
-                "stage": "reset"
-            })
+            storage("reset")
         }
     })
 })

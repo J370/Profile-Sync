@@ -4,13 +4,22 @@ window.addEventListener("load", function () {
     function cache() {
         chrome.storage.local.get(['stage'], function (result) {
             document.getElementById("message").style.display = 'block'
-            document.getElementById("first").style.display = 'block'
+            document.getElementById("first").style.display = 'none'
             if (result.stage == 'begin') {
                 document.getElementById("status").innerHTML = "Step 1 of 2: Getting Whatsapp Images"
                 document.getElementById("updates").innerHTML = "Make yourself a cup of coffee and come back to see that it is still running. 😉"
-                document.getElementById("first").style.display = 'none'
-            } else if (result.stage == 'reset') {
+            }
+            else if (result.stage == 'duplicates') {
+                document.getElementById("status").innerHTML = "Step 1 of 2: Updating Duplicate Contacts"
+                document.getElementById("updates").innerHTML = "This process shouldn't take long... Hopefully."
+            }
+            else if (result.stage == 'done') {
+                document.getElementById("status").innerHTML = "Contact Images Are Successfully Sync"
+                document.getElementById("updates").innerHTML = "Thanks for your patience."
+            }
+            if (result.stage == 'reset') {
                 document.getElementById("message").style.display = 'none'
+                document.getElementById("first").style.display = 'block'
             }
         });
     }

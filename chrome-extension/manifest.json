@@ -1,7 +1,7 @@
 {
     "name": "Profile Image Sync",
     "description": "Sync images from Whatsapp",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "manifest_version": 2,
     "icons": {
         "16": "img/PIS-16.png",

@@ -2,14 +2,19 @@ var port = chrome.runtime.connect({
     name: "final"
 });
 
-port.onMessage.addListener(function (msg) {});
-
 function storage(msg) {
     chrome.storage.local.set({
         "stage": msg
     })
     port.postMessage({cmd: "Update"});
 }
+
+port.onMessage.addListener(async function (msg) {
+    console.log(msg)
+    if (msg.cmd == "duplicate") { 
+        duplicate(msg.list)
+    }
+});
 
 function begin() {
     
@@ -31,6 +36,15 @@ function begin() {
                 cmd: "Contact",
                 contacts: [key, value]
             });
+        }
+
+        function toBase(image) {
+            var canvas = document.createElement('CANVAS');
+            var ctx = canvas.getContext('2d');
+            canvas.height = image.naturalHeight;
+            canvas.width = image.naturalWidth;
+            ctx.drawImage(image, 0, 0);
+            return canvas.toDataURL().replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
         }
 
         const callback = function (mutationsList, observer) {
@@ -76,17 +90,14 @@ function begin() {
                 cmd: "Flow",
             });
 
-            for (var i = 0; i < document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er").length; i++) {
-                if (document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img")) {
-                    var canvas = document.createElement('CANVAS');
-                    var ctx = canvas.getContext('2d');
-                    canvas.height = document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img").naturalHeight;
-                    canvas.width = document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img").naturalWidth;
-                    ctx.drawImage(document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img"), 0, 0);
-                    dataURL = canvas.toDataURL().replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
-                    addValue(document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")[i].title, [dataURL, document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img").src]);
+            var selection = document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")
+            for (var i = 0; i < selection.length; i++) {
+                var image = document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[i].querySelector("img")
+                if (image) {
+                    dataURL = toBase(image)
+                    addValue(selection[i].title, [dataURL, image.src]);
                 } else {
-                    addValue(document.querySelectorAll(".Akuo4 ._35k-1._1adfa._3-8er")[i].title, null);
+                    addValue(selection[i].title, null);
                 }
                 observer.observe(document.querySelectorAll("._1Flk2._2DPZK ._2aBzC")[i], config);
             }
@@ -106,28 +117,11 @@ function begin() {
                         scroll++
                         scrolling();
                     } catch {
-                        storage("reset")
                         observer.disconnect
                     }
                 }, 1500);
             } else {
-                // const contact = {}
-                // for (i in dict) {
-                //     var value = false
-                //     for (con in dict[i]) {
-                //         if (dict[i][con] != null) {
-                //             value = true
-                //         }
-                //     }
-                //     if (value) {
-                //         contact[i] = Array.from(new Set(dict[i]))
-                //         if (contact[i].length > 1) {
-                //             console.log("Duplicates detected")
-                //         }
-                //     }
-                // }
                 setTimeout(()=>{
-                    storage("reset")
                     observer.disconnect
                 }, 2000)
             }
@@ -151,6 +145,61 @@ function begin() {
         });
     } else {
         scrollbegin();
+    }
+}
+
+test = {
+    "Abi": [
+        {
+            "metadata": {
+                "primary": true,
+                "source": {
+                    "type": "CONTACT",
+                    "id": "6e978c198ac801cc"
+                }
+            },
+            "value": "+6597573594",
+            "canonicalForm": "+6597573594",
+            "type": "mobile",
+            "formattedType": "行動裝置"
+        },
+        {
+            "metadata": {
+                "primary": true,
+                "source": {
+                    "type": "CONTACT",
+                    "id": "20ed150c89f56b45"
+                }
+            },
+            "value": "+6591393612",
+            "canonicalForm": "+6591393612",
+            "type": "mobile",
+            "formattedType": "行動裝置"
+        }
+    ]
+}
+
+duplicate(test)
+
+function duplicate(contacts) {
+    console.log(contacts)
+    for(i in contacts) {
+        for(person in i) {
+            var contact = document.createElement("a")
+            contact.id = phoneNum
+            contact.href = "https://web.whatsapp.com/send?phone=" + phoneNum
+            document.body.appendChild(contact)
+            document.getElementById(phoneNum).click()
+            if(document.querySelector("._1gmLA") != null) {
+                
+                document.querySelector("._1-qgF ._35k-1._1adfa._3-8er").click()
+                var phone = document.querySelectorAll("._3ZEdX._3hiFt")[3].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1]
+                phone.replace("+", "").replace(" ", "")
+            }
+            else {
+                document.querySelector(".VtaVl.-TvKO").click()
+            }
+        }
     }
 }
 
