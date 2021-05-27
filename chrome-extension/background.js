@@ -1,7 +1,11 @@
 //If you are seeing this, wish you luck to your eyes.
 
+var background = 0;
+var index = 0;
+
 var token;
 var parallel = 3;
+var nucBtn = false;
 chrome.storage.local.get(['key'], function (result) {
     token = result.key
 })
@@ -32,12 +36,12 @@ chrome.runtime.onConnect.addListener(function (port) {
     var dict = {}
     var duplicates = {}
 
-    function storage(msg) {
+    function storage(value, msg) {
         chrome.storage.local.set({
-            "stage": msg
+            [value]: msg
         })
-        port.postMessage({cmd: "Update"});
     }
+    storage("up", ["0 out of 0 ..."])
 
     var apiKey
     fetch('config.json')
@@ -129,7 +133,11 @@ chrome.runtime.onConnect.addListener(function (port) {
 
     function pushOAuth(i) {
         function run() {
-            pushOAuth(0)
+            if(!nucBtn) {
+                background++
+                storage("up", [background + " out of " + index + " ..."])
+                pushOAuth(0)
+            }
         }
         var key = Object.keys(whatsapp)[0+i]
         var value = whatsapp[key]
@@ -140,10 +148,21 @@ chrome.runtime.onConnect.addListener(function (port) {
                 var count = 0
                 var person = []
                 for(var contact in contacts) {
-                    if(contacts[contact][0] == key)
-                    {
-                        count += 1
-                        person.push(contact)
+                    if(parallel > 0) {
+                        if(contacts[contact][0] == key)
+                        {
+                            count += 1
+                            person.push(contact)
+                        }
+                    }
+                    else {
+                        count = 1
+                        for (i in contacts[contact][1]){
+                            if(contacts[contact][1][i].canonicalForm == key.replace(/\s/g, ""))
+                            {
+                                person.push(contact)
+                            }
+                        }
                     }
                 }
                 if (count == 1) {
@@ -176,15 +195,16 @@ chrome.runtime.onConnect.addListener(function (port) {
 
     function duplicate() {
         --parallel
-        if(parallel == 0) {
+        if(parallel <= 0) {
             if (Object.keys(duplicates).length > 0) {
                 port.postMessage({
                     cmd: "duplicate",
                     list: duplicates
                 })
+                storage("stage", "duplicates")
             }
             else {
-                storage("done")
+                storage("stage", "done")
             }
         }
     }
@@ -215,29 +235,36 @@ chrome.runtime.onConnect.addListener(function (port) {
             whatsapp[key] = [value]
         }
     }
-    
+
     port.onMessage.addListener(async function (msg) {
         if (msg.cmd == "Contact") { 
-            if(parallel != 0) {
-                addWhatsapp(msg.contacts)
-            }
-            else {
-                
-            }
+            addWhatsapp(msg.contacts)
+            index ++
         }
         else if (msg.cmd == "Flow") {
-            getOAuth().then(()=>{
-                for(var i = 0; i < parallel; i++) {
+            nucBtn = false
+            if(parallel > 0) {
+                getOAuth().then(()=>{
+                    for(var i = 0; i < parallel; i++) {
+                        setTimeout((count)=>{
+                            pushOAuth(count)
+                        }, 2000 * (i + 1), i)
+                    }
+                })
+            }
+            else {
+                duplicates = {}
+                for(var i = 0; i < 3; i++) {
                     setTimeout((count)=>{
                         pushOAuth(count)
                     }, 2000 * (i + 1), i)
                 }
-            })
+            }
         }
         else if (msg.cmd == "Open") {
             function myListener(tabId, changeInfo, tab) {
                 if (tab.url.indexOf('https://web.whatsapp.com') != -1 && changeInfo.status === 'complete') {
-                    cconsthrome.tabs.onUpdated.removeListener(myListener);
+                    chrome.tabs.onUpdated.removeListener(myListener);
                     chrome.tabs.executeScript(tabId, {
                         file: "js/index.js"
                     })
@@ -248,6 +275,8 @@ chrome.runtime.onConnect.addListener(function (port) {
             }
 
             chrome.tabs.onUpdated.addListener(myListener)
+        }else if (msg.cmd == "Stop") {
+            nucBtn = true
         }
     })
 })
@@ -255,7 +284,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 chrome.tabs.onRemoved.addListener(function (tabid, removed) {
     chrome.storage.local.get(['tab'], function (result) {
         if (result.tab == tabid) {
-            storage("reset")
+            storage("stage", "reset")
         }
     })
 })

@@ -1,10 +1,12 @@
+var nucBtn = false
+
 var port = chrome.runtime.connect({
     name: "final"
 });
 
-function storage(msg) {
+function storage(value, msg) {
     chrome.storage.local.set({
-        "stage": msg
+        [value]: msg
     })
     port.postMessage({cmd: "Update"});
 }
@@ -13,12 +15,14 @@ port.onMessage.addListener(async function (msg) {
     console.log(msg)
     if (msg.cmd == "duplicate") { 
         duplicate(msg.list)
+    }else if (msg.cmd == "stop") {
+        nucBtn = true
     }
 });
 
 function begin() {
     
-    storage("begin")
+    storage("stage", "begin")
 
     document.querySelectorAll('._1XaX-')[1].click();
 
@@ -53,12 +57,7 @@ function begin() {
                     try {
                         if (mutation.addedNodes[0].nodeName == "IMG" && mutation.target.className === "-y4n1") {
                             pername = mutation.addedNodes[0].offsetParent.offsetParent.lastChild.firstChild.firstChild.firstChild.firstChild.title
-                            var canvas = document.createElement('CANVAS');
-                            var ctx = canvas.getContext('2d');
-                            canvas.height = mutation.addedNodes[0].naturalHeight;
-                            canvas.width = mutation.addedNodes[0].naturalWidth;
-                            ctx.drawImage(mutation.addedNodes[0], 0, 0);
-                            dataURL = canvas.toDataURL().replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+                            dataURL = toBase(mutation.addedNodes[0])
                             if (dataURL == "data:,") {
                                 addValue(pername, null)
                             }
@@ -103,8 +102,6 @@ function begin() {
             }
         }, 200);
 
-        scroll = 0
-
         function scrolling() {
             if (Math.ceil(document.querySelector("._1C2Q3._36Jt6").scrollHeight - document.querySelector("._1C2Q3._36Jt6").scrollTop) > document.querySelector("._1C2Q3._36Jt6").clientHeight + document.querySelector("[data-list-scroll-offset]").clientHeight / 5) {
                 setTimeout(function () {
@@ -114,8 +111,11 @@ function begin() {
                             left: 0,
                             behavior: 'smooth'
                         });
-                        scroll++
-                        scrolling();
+                        if(nucBtn) {
+                            observer.disconnect
+                        }else {
+                            scrolling();
+                        }
                     } catch {
                         observer.disconnect
                     }
@@ -148,57 +148,44 @@ function begin() {
     }
 }
 
-test = {
-    "Abi": [
-        {
-            "metadata": {
-                "primary": true,
-                "source": {
-                    "type": "CONTACT",
-                    "id": "6e978c198ac801cc"
-                }
-            },
-            "value": "+6597573594",
-            "canonicalForm": "+6597573594",
-            "type": "mobile",
-            "formattedType": "行動裝置"
-        },
-        {
-            "metadata": {
-                "primary": true,
-                "source": {
-                    "type": "CONTACT",
-                    "id": "20ed150c89f56b45"
-                }
-            },
-            "value": "+6591393612",
-            "canonicalForm": "+6591393612",
-            "type": "mobile",
-            "formattedType": "行動裝置"
+click = phoneNum => new Promise((resolve)=>{
+    var contact = document.createElement("a")
+    contact.id = phoneNum
+    contact.href = "https://web.whatsapp.com/send?phone=" + phoneNum
+    document.body.appendChild(contact)
+    document.getElementById(phoneNum).click()
+    // Mutation Observer in progress
+    setTimeout(()=> {
+        if(document.querySelector("._1gmLA") == null) {
+            document.querySelector("._1-qgF ._35k-1._1adfa._3-8er").click()
+            var phone = document.querySelectorAll("._3ZEdX._3hiFt")[3].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1].getInnerHTML()
+            var image = document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[0].querySelector("img")
+            if (image) {
+                var canvas = document.createElement('CANVAS');
+                var ctx = canvas.getContext('2d');
+                canvas.height = image.naturalHeight;
+                canvas.width = image.naturalWidth;
+                ctx.drawImage(image, 0, 0);
+                dataURL = canvas.toDataURL().replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+                port.postMessage({
+                    cmd: "Contact",
+                    contacts: [phone, [dataURL, image.src]]
+                });
+                port.postMessage({
+                    cmd: "Flow"
+                });
+            }
         }
-    ]
-}
+        resolve()
+    }, 2000)
+})
 
-duplicate(test)
-
-function duplicate(contacts) {
+async function duplicate(contacts) {
     console.log(contacts)
     for(i in contacts) {
-        for(person in i) {
-            var contact = document.createElement("a")
-            contact.id = phoneNum
-            contact.href = "https://web.whatsapp.com/send?phone=" + phoneNum
-            document.body.appendChild(contact)
-            document.getElementById(phoneNum).click()
-            if(document.querySelector("._1gmLA") != null) {
-                
-                document.querySelector("._1-qgF ._35k-1._1adfa._3-8er").click()
-                var phone = document.querySelectorAll("._3ZEdX._3hiFt")[3].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1]
-                phone.replace("+", "").replace(" ", "")
-            }
-            else {
-                document.querySelector(".VtaVl.-TvKO").click()
-            }
+        for(person in contacts[i]) {
+            var phoneNum = contacts[i][person].canonicalForm
+            await click(phoneNum)
         }
     }
 }

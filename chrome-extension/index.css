@@ -2,6 +2,10 @@ html {
     padding: 2vw;
 }
 
+body {
+    padding-bottom: 8vw;
+}
+
 h3 {
     white-space: nowrap;
     margin-top: 0;

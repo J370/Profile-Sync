@@ -27,4 +27,12 @@ window.onload = function () {
             }
         });
     });
+    document.getElementById("button").addEventListener('click', async () => {
+        port.postMessage({
+            cmd: "Stop",
+        });
+        chrome.storage.local.set({
+            "stage": "reset"
+        })
+    })
 }

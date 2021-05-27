@@ -1,10 +1,16 @@
 window.addEventListener("load", function () {
     console.log('OAuth alive')
+    var status
 
     function cache() {
         chrome.storage.local.get(['stage'], function (result) {
             document.getElementById("message").style.display = 'block'
             document.getElementById("first").style.display = 'none'
+            document.getElementById("button").classList.add('red')
+            if(status != undefined) {
+                document.getElementById("progress").innerHTML = status
+            }
+            document.getElementById("button").innerHTML = '<i class="material-icons left">warning</i>Cancel'
             if (result.stage == 'begin') {
                 document.getElementById("status").innerHTML = "Step 1 of 2: Getting Whatsapp Images"
                 document.getElementById("updates").innerHTML = "Make yourself a cup of coffee and come back to see that it is still running. 😉"
@@ -14,6 +20,8 @@ window.addEventListener("load", function () {
                 document.getElementById("updates").innerHTML = "This process shouldn't take long... Hopefully."
             }
             else if (result.stage == 'done') {
+                document.getElementById("button").classList.remove('red')
+                document.getElementById("button").innerHTML = "Ok"
                 document.getElementById("status").innerHTML = "Contact Images Are Successfully Sync"
                 document.getElementById("updates").innerHTML = "Thanks for your patience."
             }
@@ -35,6 +43,10 @@ window.addEventListener("load", function () {
         }
     })
 
+    chrome.storage.local.get(['up'], function (result) {
+        status = result.up
+    })
+
     chrome.identity.getAuthToken({
         interactive: true
     }, function (token) {
@@ -47,16 +59,12 @@ window.addEventListener("load", function () {
                 "key": token
             })
         }
-        cache()
     });
 
-    chrome.runtime.onConnect.addListener(function (port) {
-        console.assert(port.name == "final");
-
-        port.onMessage.addListener(async function (msg) {
-            if (msg.cmd == "Update") {
-                cache()
-            }
-        });
+    chrome.storage.local.onChanged.addListener(()=>{
+        cache()
+        chrome.storage.local.get(['up'], function (result) {
+            status = result.up
+        })
     })
 });
