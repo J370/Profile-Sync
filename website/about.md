@@ -26,3 +26,7 @@ Any data being processed by the extension never leaves your computer and will be
 ### Get it now!
  
 [![Chrome Extension](/img/chrome.png)](https://chrome.google.com/webstore/detail/profile-image-sync/lfplcgpfghfgnndjcpohkdfpkmdmijcc){:target="\_blank"}
+
+
+#### Contributing
+Contributing is straightforward and easy. Visit our [Github Page](https://github.com/J370/Profile-Sync/){:target="\_blank"} to provide your contributions. If you are not proficient in programming, there is always the option of a [sponsorship](https://github.com/sponsors/j370){:target="\_blank"}. Sponsorships are highly appreciated.
