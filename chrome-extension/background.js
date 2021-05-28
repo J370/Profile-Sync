@@ -1,14 +1,5 @@
 //If you are seeing this, wish you luck to your eyes.
 
-var background = 0;
-var index = 0;
-
-var token;
-var parallel = 3;
-var nucBtn = false;
-chrome.storage.local.get(['key'], function (result) {
-    token = result.key
-})
 chrome.runtime.onInstalled.addListener(() => {
     chrome.tabs.create({
         url: 'newcomer.html'
@@ -30,11 +21,18 @@ chrome.runtime.onInstalled.addListener(() => {
     })
 });
 
-chrome.storage.local.set({
-    "up": ["0 out of 0 ..."]
+var token;
+chrome.storage.local.get(['key'], function (result) {
+    token = result.key
 })
 
-chrome.runtime.onConnect.addListener(function (port) {
+chrome.runtime.onConnect.addListener(function begin(port) {
+    var background = 0;
+    var index = 0;
+    
+    var parallel = 3;
+    var nucBtn = false;
+
     console.assert(port.name == "final");
     var contacts = {}
     var whatsapp = {}
@@ -45,6 +43,8 @@ chrome.runtime.onConnect.addListener(function (port) {
             [value]: msg
         })
     }
+
+    storage("up", ["0 out of 0 ..."])
 
     var apiKey
     fetch('config.json')
@@ -101,6 +101,7 @@ chrome.runtime.onConnect.addListener(function (port) {
     };
 
     function getOAuth() {
+        storage("up", [undefined])
         console.log('Getting Contacts');
 
         function appendContact(data) {
@@ -212,8 +213,7 @@ chrome.runtime.onConnect.addListener(function (port) {
     }
 
     function duplicate() {
-        --parallel
-        if(parallel <= 0) {
+        if(parallel == 1) {
             if (Object.keys(duplicates).length > 0) {
                 port.postMessage({
                     cmd: "duplicate",
@@ -222,10 +222,14 @@ chrome.runtime.onConnect.addListener(function (port) {
                 storage("stage", "duplicates")
             }
             else {
-                storage("up", [undefined])
+                port.postMessage({
+                    cmd: "duplicate",
+                    list: duplicates
+                })
                 storage("stage", "done")
             }
         }
+        --parallel
     }
 
     function addWhatsapp(data) {
@@ -265,11 +269,12 @@ chrome.runtime.onConnect.addListener(function (port) {
                 for(var i = 0; i < 3; i++) {
                     setTimeout((count)=>{
                         pushOAuth(count)
-                    }, 3000 * (i + 1), i)
+                    }, 10000 * (i + 1), i)
                 }
             }
         }
         else if (msg.cmd == "Open") {
+            begin()
             function myListener(tabId, changeInfo, tab) {
                 if (tab.url.indexOf('https://web.whatsapp.com') != -1 && changeInfo.status === 'complete') {
                     chrome.tabs.onUpdated.removeListener(myListener);

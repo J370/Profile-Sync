@@ -12,7 +12,6 @@ function storage(value, msg) {
 }
 
 port.onMessage.addListener(async function (msg) {
-    console.log(msg)
     if (msg.cmd == "duplicate") { 
         duplicate(msg.list)
     }else if (msg.cmd == "stop") {
@@ -158,7 +157,12 @@ click = phoneNum => new Promise((resolve)=>{
     setTimeout(()=> {
         if(document.querySelector("._1gmLA") == null) {
             document.querySelector("._1-qgF ._35k-1._1adfa._3-8er").click()
-            var phone = document.querySelectorAll("._3ZEdX._3hiFt")[3].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1].getInnerHTML()
+            if(document.querySelectorAll("._3ZEdX._3hiFt")[3].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1]) {
+                var phone = document.querySelectorAll("._3ZEdX._3hiFt")[3].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1].getInnerHTML()
+            }
+            else {
+                var phone = document.querySelectorAll("._3ZEdX._3hiFt")[5].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1].getInnerHTML()
+            }
             var image = document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[0].querySelector("img")
             if (image) {
                 var canvas = document.createElement('CANVAS');
@@ -176,18 +180,20 @@ click = phoneNum => new Promise((resolve)=>{
                 });
             }
         }
-        resolve()
+        setTimeout(()=> {
+            resolve()
+        }, 1000)
     }, 2000)
 })
 
 async function duplicate(contacts) {
-    console.log(contacts)
     for(i in contacts) {
         for(person in contacts[i]) {
             var phoneNum = contacts[i][person].canonicalForm
             await click(phoneNum)
         }
     }
+    storage("stage", "done")
 }
 
 if(document.querySelectorAll("._1XaX-").length !== 0) {

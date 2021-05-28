@@ -14,8 +14,11 @@ window.addEventListener("load", function () {
                     document.getElementById("message").style.display = 'block'
                     document.getElementById("first").style.display = 'none'
                     document.getElementById("button").classList.add('red')
-                    if(status != undefined) {
-                        document.getElementById("progress").innerHTML = status
+                    if(status != undefined && status != "0 out of 0 ...") {
+                        document.getElementById("progress").innerHTML = status + " (Counter currently broken but rough gague)"
+                    }
+                    else {
+                        document.getElementById("progress").innerHTML = " (Counter currently broken but rough gague)"
                     }
                     document.getElementById("button").innerHTML = '<i class="material-icons left">warning</i>Cancel'
                     if (result.stage == 'begin') {
@@ -23,7 +26,7 @@ window.addEventListener("load", function () {
                         document.getElementById("updates").innerHTML = "Make yourself a cup of coffee and come back to see that it is still running. 😉"
                     }
                     else if (result.stage == 'duplicates') {
-                        document.getElementById("status").innerHTML = "Step 1 of 2: Updating Duplicate Contacts"
+                        document.getElementById("status").innerHTML = "Step 2 of 2: Updating Duplicate Contacts"
                         document.getElementById("updates").innerHTML = "This process shouldn't take long... Hopefully."
                     }
                     else if (result.stage == 'done') {
