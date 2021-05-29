@@ -45,6 +45,10 @@ chrome.runtime.onConnect.addListener(function begin(port) {
         })
     }
 
+    chrome.storage.local.get(['key'], function (result) {
+        token = result.key
+    })
+
     fetch('config.json')
         .then((response) => response.json())
         .then((data) => {
@@ -128,27 +132,14 @@ chrome.runtime.onConnect.addListener(function begin(port) {
         }
 
         return new Promise((resolve) => {
-            if (token == undefined) {
-                chrome.storage.local.get(['key'], function (result) {
-                    token = result.key
-                })
-                setTimeout(() => {
-                    be()
-                }, 5000)
-            } else {
-                be()
-            }
-
-            function be() {
-                fetch('https://people.googleapis.com/v1/people/me/connections/?pageSize=1000&personFields=names,phoneNumbers&key=' + apiKey, get)
-                    .then((response) => response.json())
-                    .then(function (data) {
-                        appendContact(data);
-                        request(data).then(function () {
-                            resolve()
-                        })
-                    });
-            }
+            fetch('https://people.googleapis.com/v1/people/me/connections/?pageSize=1000&personFields=names,phoneNumbers&key=' + apiKey, get)
+                .then((response) => response.json())
+                .then(function (data) {
+                    appendContact(data);
+                    request(data).then(function () {
+                        resolve()
+                    })
+                });
         })
     };
 
@@ -236,7 +227,7 @@ chrome.runtime.onConnect.addListener(function begin(port) {
                 } else {
                     pushOAuth(0)
                 }
-            }, 5000)
+            }, 2000)
         }
     }
 
