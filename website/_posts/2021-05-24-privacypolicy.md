@@ -1,7 +1,6 @@
 ---
 layout: post
 title:  "Privacy Policy"
-date:   2021-05-24
 categories: policy
 ---
 # Privacy Policy for Profile Image Sync
