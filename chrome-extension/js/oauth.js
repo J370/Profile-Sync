@@ -13,12 +13,10 @@ window.addEventListener("load", function () {
                 chrome.storage.local.get(['stage'], function (result) {
                     document.getElementById("message").style.display = 'block'
                     document.getElementById("first").style.display = 'none'
+                    document.getElementById("button").classList.remove('green')
                     document.getElementById("button").classList.add('red')
-                    if(status != undefined && status != "0 out of 0 ...") {
-                        document.getElementById("progress").innerHTML = status + " (Counter currently broken but rough gague)"
-                    }
-                    else {
-                        document.getElementById("progress").innerHTML = " (Counter currently broken but rough gague)"
+                    if(status != undefined) {
+                        document.getElementById("progress").innerHTML = status
                     }
                     document.getElementById("button").innerHTML = '<i class="material-icons left">warning</i>Cancel'
                     if (result.stage == 'begin') {
@@ -31,9 +29,10 @@ window.addEventListener("load", function () {
                     }
                     else if (result.stage == 'done') {
                         document.getElementById("button").classList.remove('red')
+                        document.getElementById("button").classList.add('green')
                         document.getElementById("button").innerHTML = "Ok"
                         document.getElementById("status").innerHTML = "Contact Images Are Successfully Sync"
-                        document.getElementById("updates").innerHTML = "Thanks for your patience."
+                        document.getElementById("updates").innerHTML = "Thanks for your patience. If contacts are not updated, try running again. Lodge a bug report if futile."
                     }
                     else if (result.stage == 'reset') {
                         document.getElementById("message").style.display = 'none'

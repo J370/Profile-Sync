@@ -1,6 +1,6 @@
 window.onload = function () {
     var port = chrome.runtime.connect({
-        name: "final"
+        name: "pis"
     });
     document.getElementById("begin").addEventListener('click', async () => {
         chrome.tabs.query({
@@ -28,9 +28,6 @@ window.onload = function () {
         });
     });
     document.getElementById("button").addEventListener('click', async () => {
-        port.postMessage({
-            cmd: "Stop",
-        });
         chrome.storage.local.set({
             "stage": "reset"
         })

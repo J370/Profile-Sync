@@ -1,7 +1,5 @@
-var nucBtn = false
-
 var port = chrome.runtime.connect({
-    name: "final"
+    name: "pis"
 });
 
 function storage(value, msg) {
@@ -14,19 +12,32 @@ function storage(value, msg) {
 port.onMessage.addListener(async function (msg) {
     if (msg.cmd == "duplicate") { 
         duplicate(msg.list)
-    }else if (msg.cmd == "stop") {
-        nucBtn = true
     }
 });
 
+function toBase(image) {
+    var canvas = document.createElement('CANVAS');
+    var ctx = canvas.getContext('2d');
+    canvas.height = image.naturalHeight;
+    canvas.width = image.naturalWidth;
+    ctx.drawImage(image, 0, 0);
+    return canvas.toDataURL().replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+}
+
 function begin() {
-    
+    var pis = document.getElementById("PIS");
+    if(pis != null) {
+        pis.remove();
+    }
+    var root = document.createElement("pis")
+    root.id = "PIS"
+    document.body.appendChild(root)
+
     storage("stage", "begin")
 
     document.querySelectorAll('._1XaX-')[1].click();
 
     function scrollbegin() {
-        var dict = {};
         height = []
         const config = {
             attributes: true,
@@ -39,15 +50,6 @@ function begin() {
                 cmd: "Contact",
                 contacts: [key, value]
             });
-        }
-
-        function toBase(image) {
-            var canvas = document.createElement('CANVAS');
-            var ctx = canvas.getContext('2d');
-            canvas.height = image.naturalHeight;
-            canvas.width = image.naturalWidth;
-            ctx.drawImage(image, 0, 0);
-            return canvas.toDataURL().replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
         }
 
         const callback = function (mutationsList, observer) {
@@ -110,11 +112,14 @@ function begin() {
                             left: 0,
                             behavior: 'smooth'
                         });
-                        if(nucBtn) {
-                            observer.disconnect
-                        }else {
-                            scrolling();
-                        }
+                        chrome.storage.local.get(['stage'], function (result) {
+                            if(result.stage == "reset") {
+                                observer.disconnect
+                            }
+                            else {
+                                scrolling()
+                            }
+                        })
                     } catch {
                         observer.disconnect
                     }
@@ -149,36 +154,32 @@ function begin() {
 
 click = phoneNum => new Promise((resolve)=>{
     var contact = document.createElement("a")
+    document.getElementById("PIS").appendChild(contact)
     contact.id = phoneNum
     contact.href = "https://web.whatsapp.com/send?phone=" + phoneNum
-    document.body.appendChild(contact)
     document.getElementById(phoneNum).click()
     // Mutation Observer in progress
     setTimeout(()=> {
         if(document.querySelector("._1gmLA") == null) {
             document.querySelector("._1-qgF ._35k-1._1adfa._3-8er").click()
-            if(document.querySelectorAll("._3ZEdX._3hiFt")[3].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1]) {
-                var phone = document.querySelectorAll("._3ZEdX._3hiFt")[3].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1].getInnerHTML()
-            }
-            else {
-                var phone = document.querySelectorAll("._3ZEdX._3hiFt")[5].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1].getInnerHTML()
-            }
-            var image = document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[0].querySelector("img")
-            if (image) {
-                var canvas = document.createElement('CANVAS');
-                var ctx = canvas.getContext('2d');
-                canvas.height = image.naturalHeight;
-                canvas.width = image.naturalWidth;
-                ctx.drawImage(image, 0, 0);
-                dataURL = canvas.toDataURL().replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
-                port.postMessage({
-                    cmd: "Contact",
-                    contacts: [phone, [dataURL, image.src]]
-                });
-                port.postMessage({
-                    cmd: "Flow"
-                });
-            }
+            setTimeout(()=>{
+                if(document.querySelectorAll("._3ZEdX._3hiFt")[3].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1]) {
+                    var phone = document.querySelectorAll("._3ZEdX._3hiFt")[3].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1].getInnerHTML()
+                }
+                else {
+                    var phone = document.querySelectorAll("._3ZEdX._3hiFt")[5].querySelectorAll("._2kOFZ ._1Kn3o._1AJnI._29Iga")[1].getInnerHTML()
+                }
+                setTimeout(()=>{
+                    var image = document.querySelectorAll(".OMoBQ._3wXwX.copyable-area .-y4n1")[0].querySelector("img")
+                    if (image) {
+                        dataURL = toBase(image);
+                        port.postMessage({
+                            cmd: "Contact",
+                            contacts: [phone, [dataURL, image.src]]
+                        });
+                    }
+                }, 500)
+            }, 500)
         }
         setTimeout(()=> {
             resolve()
@@ -187,13 +188,18 @@ click = phoneNum => new Promise((resolve)=>{
 })
 
 async function duplicate(contacts) {
+    port.postMessage({
+        cmd: "Flow"
+    });
     for(i in contacts) {
         for(person in contacts[i]) {
             var phoneNum = contacts[i][person].canonicalForm
             await click(phoneNum)
         }
     }
-    storage("stage", "done")
+    port.postMessage({
+        cmd: "Dup",
+    });
 }
 
 if(document.querySelectorAll("._1XaX-").length !== 0) {
@@ -207,6 +213,7 @@ var front = new MutationObserver(function (mutations, me) {
             begin();
         }
         else {
+            document.querySelectorAll('._1XaX-')[1].click();
             setTimeout(()=> {
                 begin();
             },3000)
