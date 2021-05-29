@@ -9,7 +9,7 @@ permalink: /about/
  
 [![Chrome Extension](/img/chrome.png)](https://chrome.google.com/webstore/detail/profile-image-sync/lfplcgpfghfgnndjcpohkdfpkmdmijcc){:target="\_blank"}
 
-#### Production Status: Beta (certain features are still experimental)
+Production Status: Beta (certain features are still experimental)
  
 <br /> <br />
 
